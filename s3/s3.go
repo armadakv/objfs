@@ -1,3 +1,5 @@
+// Copyright Armada Contributors
+
 // Package s3 provides an Amazon S3 (and S3-compatible, e.g. MinIO, R2)
 // implementation of [objfs.Bucket].
 //

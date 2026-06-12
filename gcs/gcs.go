@@ -1,3 +1,5 @@
+// Copyright Armada Contributors
+
 // Package gcs provides a Google Cloud Storage implementation of
 // [objfs.Bucket].
 //

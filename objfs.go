@@ -1,3 +1,5 @@
+// Copyright Armada Contributors
+
 // Package objfs is a lightweight object-storage abstraction that is also an
 // [io/fs.FS].
 //

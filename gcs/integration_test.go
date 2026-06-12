@@ -1,3 +1,5 @@
+// Copyright Armada Contributors
+
 //go:build integration
 
 // Integration tests run the shared objfstest conformance suite against

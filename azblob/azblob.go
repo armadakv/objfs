@@ -1,3 +1,5 @@
+// Copyright Armada Contributors
+
 // Package azblob provides an Azure Blob Storage implementation of
 // [objfs.Bucket], scoped to a single container.
 //

@@ -1,3 +1,5 @@
+// Copyright Armada Contributors
+
 // Package objfstest provides a reusable conformance suite for [objfs.Bucket]
 // implementations. The local unit tests and each cloud backend's integration
 // tests all run the same suite, so every backend is exercised identically.

@@ -1,0 +1,64 @@
+version: "2"
+run:
+  modules-download-mode: readonly
+linters:
+  default: none
+  enable:
+    - bodyclose
+    - godot
+    - goheader
+    - gomodguard_v2
+    - gosec
+    - govet
+    - ineffassign
+    - staticcheck
+    - testifylint
+    - unconvert
+    - unparam
+    - unused
+    - usestdlibvars
+    - wastedassign
+    - whitespace
+  settings:
+    goheader:
+      template: Copyright Armada Contributors
+    gosec:
+      excludes:
+        - G104
+        - G115
+        - G304
+        - G401
+        - G404
+        - G501
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - gosec
+          - ineffassign
+        path: _test\.go
+      - linters:
+          - staticcheck
+        text: 'SA4006:'
+    paths:
+      - raft
+      - vfs
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - raft
+      - third_party$
+      - builtin$
+      - examples$
