@@ -5,7 +5,11 @@ updates:
   schedule:
     interval: "weekly"
 - package-ecosystem: "gomod"
-  directory: "/"
+  directories:
+  - "/"
+  - "/azblob"
+  - "/gcs"
+  - "/s3"
   schedule:
     interval: "weekly"
   groups:
