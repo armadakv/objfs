@@ -21,7 +21,7 @@ test-integration:
 check:
 	@echo "Running check"
 ifeq (, $(shell which golangci-lint))
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.57.2
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v2.12.2
 endif
 	@for mod in $(MODULES); do \
 		echo "Checking $$mod"; \
