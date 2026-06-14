@@ -25,6 +25,9 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
   golangci:
+    strategy:
+      matrix:
+        modules: [., s3, gcs, azblob]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -34,4 +37,7 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Lint
-        run: make check
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.12
+          working-directory: ${{ matrix.modules }}
