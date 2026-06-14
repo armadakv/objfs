@@ -25,8 +25,10 @@ import (
 func TestAzblobIntegration(t *testing.T) {
 	ctx := context.Background()
 
-	c, err := azurite.Run(ctx, "mcr.microsoft.com/azure-storage/azurite:3.33.0",
+	c, err := azurite.Run(ctx, "mcr.microsoft.com/azure-storage/azurite:3.35.0",
 		azurite.WithInMemoryPersistence(64),
+		azurite.WithEnabledServices(azurite.BlobService),
+		testcontainers.WithCmdArgs("--skipApiVersionCheck"),
 	)
 	if err != nil {
 		t.Fatalf("start azurite: %v", err)

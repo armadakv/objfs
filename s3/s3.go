@@ -20,7 +20,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/transfermanager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/smithy-go"
@@ -32,7 +32,7 @@ import (
 type Bucket struct {
 	client   *s3.Client
 	presign  *s3.PresignClient
-	uploader *manager.Uploader
+	uploader *transfermanager.Client
 	bucket   string
 }
 
@@ -50,7 +50,7 @@ func New(client *s3.Client, bucket string) *Bucket {
 	return &Bucket{
 		client:   client,
 		presign:  s3.NewPresignClient(client),
-		uploader: manager.NewUploader(client),
+		uploader: transfermanager.New(client),
 		bucket:   bucket,
 	}
 }
@@ -168,7 +168,7 @@ func (b *Bucket) GetRange(ctx context.Context, name string, off, length int64) (
 // Upload stores r under name using a multipart-capable uploader.
 func (b *Bucket) Upload(ctx context.Context, name string, r io.Reader, opts ...objfs.UploadOption) error {
 	o := objfs.ApplyUploadOptions(opts)
-	in := &s3.PutObjectInput{
+	in := &transfermanager.UploadObjectInput{
 		Bucket: aws.String(b.bucket),
 		Key:    aws.String(name),
 		Body:   r,
@@ -182,7 +182,7 @@ func (b *Bucket) Upload(ctx context.Context, name string, r io.Reader, opts ...o
 	if len(o.Metadata) > 0 {
 		in.Metadata = o.Metadata
 	}
-	if _, err := b.uploader.Upload(ctx, in); err != nil {
+	if _, err := b.uploader.UploadObject(ctx, in); err != nil {
 		return fmt.Errorf("objfs/s3: upload %q: %w", name, err)
 	}
 	return nil
