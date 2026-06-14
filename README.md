@@ -79,27 +79,48 @@ go get github.com/armadakv/objfs/s3       # adds the AWS SDK
 ```go
 ctx := context.Background()
 
-var bucket objfs.Bucket
-bucket, _ = objfs.NewLocal("/var/data")        // or s3.Open(...), gcs.Open(...), azblob.OpenWithSharedKey(...)
+bucket, err := objfs.NewLocal("/var/data") // or s3.Open(...), gcs.Open(...), azblob.OpenWithSharedKey(...)
+if err != nil {
+    return err
+}
 defer bucket.Close()
 
-// Upload
-bucket.Upload(ctx, "reports/q3.pdf", r, objfs.WithContentType("application/pdf"))
+// Upload.
+if err := bucket.Upload(ctx, "reports/q3.pdf", r, objfs.WithContentType("application/pdf")); err != nil {
+    return err
+}
 
-// Read back through the standard library — a Bucket is an io/fs.FS
-data, _ := fs.ReadFile(bucket, "reports/q3.pdf")
+// Read back through the standard library — Bucket is an io/fs.FS.
+data, err := fs.ReadFile(bucket, "reports/q3.pdf")
+if err != nil {
+    return err
+}
+fmt.Printf("read %d bytes\n", len(data))
 
-// Stream a byte range
-rc, _ := bucket.GetRange(ctx, "reports/q3.pdf", 0, 1024)
+// Stream a byte range ([off, off+length)).
+rc, err := bucket.GetRange(ctx, "reports/q3.pdf", 0, 1024)
+if err != nil {
+    return err
+}
+defer rc.Close()
 
-// List by prefix
-bucket.List(ctx, "reports/", func(a objfs.Attributes) error {
+// List by prefix.
+if err := bucket.List(ctx, "reports/", func(a objfs.Attributes) error {
     fmt.Println(a.Name, a.Size)
     return nil // return objfs.SkipAll to stop early
-})
+}); err != nil {
+    return err
+}
 
-// Presigned URL (cloud backends only)
+// Presigned URL (cloud backends only).
 url, err := objfs.PresignedGet(ctx, bucket, "reports/q3.pdf", 15*time.Minute)
+if errors.Is(err, objfs.ErrUnsupported) {
+    // local backend and any backend without presigning support
+} else if err != nil {
+    return err
+} else {
+    fmt.Println(url)
+}
 ```
 
 ### Backend constructors
@@ -107,16 +128,17 @@ url, err := objfs.PresignedGet(ctx, bucket, "reports/q3.pdf", 15*time.Minute)
 ```go
 // S3 (and S3-compatible: MinIO, Cloudflare R2, ...)
 import objfss3 "github.com/armadakv/objfs/s3"
-b, _ := objfss3.Open(ctx, "my-bucket")                 // default AWS config chain
-b   := objfss3.New(existingS3Client, "my-bucket")      // bring your own *s3.Client
+s3Bucket, _ := objfss3.Open(ctx, "my-bucket")              // default AWS config chain
+s3Bucket = objfss3.New(existingS3Client, "my-bucket")      // bring your own *s3.Client
 
 // Google Cloud Storage
 import objfsgcs "github.com/armadakv/objfs/gcs"
-b, _ := objfsgcs.Open(ctx, "my-bucket")                // Application Default Credentials
+gcsBucket, _ := objfsgcs.Open(ctx, "my-bucket")            // Application Default Credentials
 
 // Azure Blob Storage (shared key enables SAS presigning)
 import objfsaz "github.com/armadakv/objfs/azblob"
-b, _ := objfsaz.OpenWithSharedKey(account, key, "my-container")
+azBucket, _ := objfsaz.OpenWithSharedKey(account, key, "my-container")
+azBucket = objfsaz.New(existingAzureClient, "my-container") // BYO *azblob.Client
 ```
 
 ## Semantics
@@ -137,10 +159,10 @@ Each module is independent. The cloud modules use a `replace` directive
 pointing at `../` so they build against your local core checkout:
 
 ```bash
-cd objfs        && go test ./...   # core + local backend
-cd objfs/s3     && go build ./...
-cd objfs/gcs    && go build ./...
-cd objfs/azblob && go build ./...
+go test ./...            # core + local backend
+(cd s3 && go build ./...)
+(cd gcs && go build ./...)
+(cd azblob && go build ./...)
 ```
 
 The local backend is verified against the standard library's own
@@ -155,16 +177,16 @@ identically — round-trip, ranges, `ReadFile`, `List`, `ReadDir`, `Sub`,
 
 - **Unit tests** (no Docker) run the suite against the local backend:
   ```bash
-  cd objfs && go test ./...
+  go test ./...
   ```
 - **Integration tests** run the same suite against real service APIs in
   containers — MinIO (S3), fake-gcs-server (GCS), and Azurite (Azure Blob) — via
   [testcontainers-go](https://golang.testcontainers.org/). They require a
   running Docker daemon and are gated behind the `integration` build tag:
   ```bash
-  cd objfs/s3     && go test -tags=integration ./...
-  cd objfs/gcs    && go test -tags=integration ./...
-  cd objfs/azblob && go test -tags=integration ./...
+  (cd s3 && go test -tags=integration ./...)
+  (cd gcs && go test -tags=integration ./...)
+  (cd azblob && go test -tags=integration ./...)
   ```
   testcontainers is a **test-only** dependency of each provider module, so it is
   never pulled into your application build.
