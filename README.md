@@ -1,5 +1,12 @@
 # objfs
 
+[![CI](https://github.com/armadakv/objfs/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/armadakv/objfs/actions/workflows/test.yml)
+[![Lint](https://github.com/armadakv/objfs/actions/workflows/lint.yml/badge.svg)](https://github.com/armadakv/objfs/actions/workflows/lint.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/armadakv/objfs.svg)](https://pkg.go.dev/github.com/armadakv/objfs)
+[![Go Reference](https://pkg.go.dev/badge/github.com/armadakv/objfs/s3.svg)](https://pkg.go.dev/github.com/armadakv/objfs/s3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/armadakv/objfs/gcs.svg)](https://pkg.go.dev/github.com/armadakv/objfs/gcs)
+[![Go Reference](https://pkg.go.dev/badge/github.com/armadakv/objfs/azblob.svg)](https://pkg.go.dev/github.com/armadakv/objfs/azblob)
+
 A lightweight object-storage abstraction for Go that is also an [`io/fs.FS`].
 
 Inspired by [Thanos' `objstore`](https://github.com/thanos-io/objstore), `objfs`
@@ -62,12 +69,12 @@ standard library and ships the local-filesystem backend. Each cloud backend is
 a **separate module** under its own directory, so its heavy SDK is only pulled
 into your build when you import it:
 
-| Module | Import | Backend | Presign |
-|---|---|---|---|
-| `github.com/armadakv/objfs` | core + `NewLocal` | local disk | — |
-| `github.com/armadakv/objfs/s3` | `objfs/s3` | Amazon S3 / S3-compatible | ✅ |
-| `github.com/armadakv/objfs/gcs` | `objfs/gcs` | Google Cloud Storage | ✅ |
-| `github.com/armadakv/objfs/azblob` | `objfs/azblob` | Azure Blob Storage | ✅ |
+| Module | Import | Docs | Backend | Presign |
+|---|---|---|---|---|
+| `github.com/armadakv/objfs` | core + `NewLocal` | [pkg.go.dev](https://pkg.go.dev/github.com/armadakv/objfs) | local disk | — |
+| `github.com/armadakv/objfs/s3` | `objfs/s3` | [pkg.go.dev](https://pkg.go.dev/github.com/armadakv/objfs/s3) | Amazon S3 / S3-compatible | ✅ |
+| `github.com/armadakv/objfs/gcs` | `objfs/gcs` | [pkg.go.dev](https://pkg.go.dev/github.com/armadakv/objfs/gcs) | Google Cloud Storage | ✅ |
+| `github.com/armadakv/objfs/azblob` | `objfs/azblob` | [pkg.go.dev](https://pkg.go.dev/github.com/armadakv/objfs/azblob) | Azure Blob Storage | ✅ |
 
 ```bash
 go get github.com/armadakv/objfs          # core, stdlib only
