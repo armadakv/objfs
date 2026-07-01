@@ -2,10 +2,10 @@
 
 [![CI](https://github.com/armadakv/objfs/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/armadakv/objfs/actions/workflows/test.yml)
 [![Lint](https://github.com/armadakv/objfs/actions/workflows/lint.yml/badge.svg)](https://github.com/armadakv/objfs/actions/workflows/lint.yml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/armadakv/objfs.svg)](https://pkg.go.dev/github.com/armadakv/objfs)
-[![Go Reference](https://pkg.go.dev/badge/github.com/armadakv/objfs/s3.svg)](https://pkg.go.dev/github.com/armadakv/objfs/s3)
-[![Go Reference](https://pkg.go.dev/badge/github.com/armadakv/objfs/gcs.svg)](https://pkg.go.dev/github.com/armadakv/objfs/gcs)
-[![Go Reference](https://pkg.go.dev/badge/github.com/armadakv/objfs/azblob.svg)](https://pkg.go.dev/github.com/armadakv/objfs/azblob)
+[![objfs](https://pkg.go.dev/badge/github.com/armadakv/objfs.svg)](https://pkg.go.dev/github.com/armadakv/objfs)
+[![objfs/s3](https://pkg.go.dev/badge/github.com/armadakv/objfs/s3.svg)](https://pkg.go.dev/github.com/armadakv/objfs/s3)
+[![objfs/gcs](https://pkg.go.dev/badge/github.com/armadakv/objfs/gcs.svg)](https://pkg.go.dev/github.com/armadakv/objfs/gcs)
+[![objfs/azblob](https://pkg.go.dev/badge/github.com/armadakv/objfs/azblob.svg)](https://pkg.go.dev/github.com/armadakv/objfs/azblob)
 
 A lightweight object-storage abstraction for Go that is also an [`io/fs.FS`].
 
