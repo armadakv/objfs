@@ -39,6 +39,7 @@ func RunBucket(t *testing.T, b objfs.Bucket, opts Options) {
 	t.Run("Range", func(t *testing.T) { testRange(t, b) })
 	t.Run("ReadFile", func(t *testing.T) { testReadFile(t, b) })
 	t.Run("List", func(t *testing.T) { testList(t, b) })
+	t.Run("Iterate", func(t *testing.T) { testIterate(t, b) })
 	t.Run("ReadDir", func(t *testing.T) { testReadDir(t, b) })
 	t.Run("Sub", func(t *testing.T) { testSub(t, b) })
 	t.Run("ReaderAtZip", func(t *testing.T) { testReaderAtZip(t, b) })
@@ -139,6 +140,46 @@ func testList(t *testing.T, b objfs.Bucket) {
 	if !slices.Equal(names, want) {
 		t.Errorf("List = %v, want %v", names, want)
 	}
+}
+
+func testIterate(t *testing.T, b objfs.Bucket) {
+	put(t, b, "iterate/a.txt", "a")
+	put(t, b, "iterate/b.txt", "b")
+	put(t, b, "iterate/sub/c.txt", "c")
+
+	t.Run("All", func(t *testing.T) {
+		var names []string
+		for a, err := range b.Iterate(context.Background(), "iterate/") {
+			if err != nil {
+				t.Fatalf("Iterate error: %v", err)
+			}
+			names = append(names, a.Name)
+		}
+		slices.Sort(names)
+		want := []string{"iterate/a.txt", "iterate/b.txt", "iterate/sub/c.txt"}
+		if !slices.Equal(names, want) {
+			t.Errorf("Iterate = %v, want %v", names, want)
+		}
+	})
+
+	t.Run("EarlyStop", func(t *testing.T) {
+		count := 0
+		for a, err := range b.Iterate(context.Background(), "iterate/") {
+			if err != nil {
+				t.Fatalf("Iterate error: %v", err)
+			}
+			if a.Name == "" {
+				t.Fatalf("Iterate yielded empty object name")
+			}
+			count++
+			if count == 1 {
+				break
+			}
+		}
+		if count != 1 {
+			t.Fatalf("Iterate early-stop consumed %d items, want 1", count)
+		}
+	})
 }
 
 func testReadDir(t *testing.T, b objfs.Bucket) {

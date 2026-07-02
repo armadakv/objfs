@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"iter"
 	"strings"
 	"time"
 
@@ -217,6 +218,24 @@ func (b *Bucket) List(ctx context.Context, prefix string, fn func(objfs.Attribut
 		if cbErr != nil {
 			return cbErr
 		}
+	}
+}
+
+// Iterate returns a lazy iterator over objects whose name begins with prefix.
+func (b *Bucket) Iterate(ctx context.Context, prefix string) iter.Seq2[objfs.Attributes, error] {
+	return func(yield func(objfs.Attributes, error) bool) {
+		stopped := false
+		err := b.List(ctx, prefix, func(a objfs.Attributes) error {
+			if !yield(a, nil) {
+				stopped = true
+				return objfs.SkipAll
+			}
+			return nil
+		})
+		if stopped || err == nil {
+			return
+		}
+		yield(objfs.Attributes{}, err)
 	}
 }
 

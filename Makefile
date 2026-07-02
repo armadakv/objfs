@@ -32,5 +32,5 @@ endif
 fmt:
 	@for mod in $(MODULES); do \
 		echo "Formatting $$mod"; \
-		(cd $$mod && gofumpt -w . && goimports -w -local github.com/armadakv/objfs .) || exit 1; \
+		(cd $$mod && golangci-lint fmt ./...) || exit 1; \
 	done

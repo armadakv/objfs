@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"iter"
 	"maps"
 	"time"
 )
@@ -61,6 +62,17 @@ type Bucket interface {
 	// stops, and the error is returned, if fn returns a non-nil error;
 	// returning [SkipAll] stops iteration without error.
 	List(ctx context.Context, prefix string, fn func(Attributes) error) error
+
+	// Iterate returns a lazy iterator over all objects whose name begins with
+	// prefix. The iterator yields (Attributes, nil) for objects and may yield a
+	// terminal non-nil error as the second value.
+	//
+	// It is equivalent to List, but more convenient for some use cases.
+	//
+	// Callers do not close the iterator directly. To stop early, break the range
+	// loop (or return false from yield); implementations must then terminate
+	// promptly and release any transient resources.
+	Iterate(ctx context.Context, prefix string) iter.Seq2[Attributes, error]
 
 	// Close releases resources held by the backend (connection pools, clients).
 	io.Closer

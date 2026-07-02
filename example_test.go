@@ -1,14 +1,12 @@
 // Copyright Armada Contributors
 
-package objfs_test
+package objfs
 
 import (
 	"context"
 	"fmt"
 	"io/fs"
 	"strings"
-
-	"github.com/armadakv/objfs"
 )
 
 // Example shows the core workflow: upload, read back through the io/fs.FS
@@ -17,8 +15,8 @@ func Example() {
 	ctx := context.Background()
 
 	// Any backend works here; the local one needs only the standard library.
-	var bucket objfs.Bucket
-	bucket, _ = objfs.NewLocal("/tmp/objfs-example")
+	var bucket Bucket
+	bucket, _ = NewLocal("/tmp/objfs-example")
 	defer bucket.Close()
 
 	_ = bucket.Upload(ctx, "greetings/hello.txt", strings.NewReader("hi"))
@@ -28,7 +26,7 @@ func Example() {
 	fmt.Printf("contents: %s\n", data)
 
 	// Presigning is an optional capability. Local does not support it.
-	if _, err := objfs.PresignedGet(ctx, bucket, "greetings/hello.txt", 0); err != nil {
+	if _, err := PresignedGet(ctx, bucket, "greetings/hello.txt", 0); err != nil {
 		fmt.Println("presign:", err)
 	}
 

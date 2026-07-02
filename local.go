@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"iter"
 	"mime"
 	"os"
 	"path"
@@ -207,6 +208,25 @@ func (l *Local) List(ctx context.Context, prefix string, fn func(Attributes) err
 			ContentType:  mime.TypeByExtension(path.Ext(name)),
 		})
 	})
+}
+
+// Iterate returns a lazy iterator over regular files whose name begins with
+// prefix.
+func (l *Local) Iterate(ctx context.Context, prefix string) iter.Seq2[Attributes, error] {
+	return func(yield func(Attributes, error) bool) {
+		stopped := false
+		err := l.List(ctx, prefix, func(attr Attributes) error {
+			if !yield(attr, nil) {
+				stopped = true
+				return SkipAll
+			}
+			return nil
+		})
+		if stopped || err == nil {
+			return
+		}
+		yield(Attributes{}, err)
+	}
 }
 
 // ReadFile implements [io/fs.ReadFileFS].
