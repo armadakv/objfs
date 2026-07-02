@@ -1,6 +1,6 @@
 // Copyright Armada Contributors
 
-package objfs_test
+package objfs
 
 import (
 	"bytes"
@@ -12,13 +12,11 @@ import (
 	"strings"
 	"testing"
 	"testing/fstest"
-
-	"github.com/armadakv/objfs"
 )
 
-func newLocal(t *testing.T) *objfs.Local {
+func newLocal(t *testing.T) *Local {
 	t.Helper()
-	b, err := objfs.NewLocal(t.TempDir())
+	b, err := NewLocal(t.TempDir())
 	if err != nil {
 		t.Fatalf("NewLocal: %v", err)
 	}
@@ -26,7 +24,7 @@ func newLocal(t *testing.T) *objfs.Local {
 	return b
 }
 
-func upload(t *testing.T, b objfs.Bucket, name, body string) {
+func upload(t *testing.T, b Bucket, name, body string) {
 	t.Helper()
 	if err := b.Upload(context.Background(), name, strings.NewReader(body)); err != nil {
 		t.Fatalf("Upload(%q): %v", name, err)
@@ -137,7 +135,7 @@ func TestLocalList(t *testing.T) {
 	upload(t, b, "other/c.txt", "c")
 
 	var names []string
-	err := b.List(context.Background(), "logs/", func(a objfs.Attributes) error {
+	err := b.List(context.Background(), "logs/", func(a Attributes) error {
 		names = append(names, a.Name)
 		return nil
 	})
@@ -151,15 +149,32 @@ func TestLocalList(t *testing.T) {
 	}
 }
 
+func TestLocalIterate(t *testing.T) {
+	b := newLocal(t)
+	upload(t, b, "x/1", "1")
+	upload(t, b, "x/2", "2")
+
+	var names []string
+
+	for attr := range b.Iterate(context.Background(), "x/") {
+		names = append(names, attr.Name)
+	}
+	slices.Sort(names)
+	want := []string{"x/1", "x/2"}
+	if !slices.Equal(names, want) {
+		t.Errorf("Iterate(x/) = %v, want %v", names, want)
+	}
+}
+
 func TestLocalListSkipAll(t *testing.T) {
 	b := newLocal(t)
 	upload(t, b, "x/1", "1")
 	upload(t, b, "x/2", "2")
 
 	var count int
-	err := b.List(context.Background(), "", func(objfs.Attributes) error {
+	err := b.List(context.Background(), "", func(Attributes) error {
 		count++
-		return objfs.SkipAll
+		return SkipAll
 	})
 	if err != nil {
 		t.Fatalf("List: %v", err)
@@ -202,8 +217,8 @@ func TestLocalSatisfiesFS(t *testing.T) {
 
 func TestPresignUnsupported(t *testing.T) {
 	b := newLocal(t)
-	_, err := objfs.PresignedGet(context.Background(), b, "x", 0)
-	if !errors.Is(err, objfs.ErrUnsupported) {
+	_, err := PresignedGet(context.Background(), b, "x", 0)
+	if !errors.Is(err, ErrUnsupported) {
 		t.Errorf("PresignedGet error = %v, want ErrUnsupported", err)
 	}
 }

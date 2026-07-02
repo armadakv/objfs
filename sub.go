@@ -6,6 +6,7 @@ import (
 	"context"
 	"io"
 	"io/fs"
+	"iter"
 	"strings"
 	"time"
 )
@@ -106,6 +107,23 @@ func (s *subBucket) List(ctx context.Context, prefix string, fn func(Attributes)
 		a.Name = strings.TrimPrefix(a.Name, s.prefix)
 		return fn(a)
 	})
+}
+
+func (s *subBucket) Iterate(ctx context.Context, prefix string) iter.Seq2[Attributes, error] {
+	return func(yield func(Attributes, error) bool) {
+		for attrs, err := range s.parent.Iterate(ctx, s.prefix+prefix) {
+			if err != nil {
+				if !yield(Attributes{}, err) {
+					return
+				}
+				continue
+			}
+			attrs.Name = strings.TrimPrefix(attrs.Name, s.prefix)
+			if !yield(attrs, nil) {
+				return
+			}
+		}
+	}
 }
 
 func (s *subBucket) PresignedURL(ctx context.Context, name string, op Operation, expiry time.Duration) (string, error) {

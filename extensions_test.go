@@ -1,6 +1,6 @@
 // Copyright Armada Contributors
 
-package objfs_test
+package objfs
 
 import (
 	"archive/zip"
@@ -12,8 +12,6 @@ import (
 	"slices"
 	"sync"
 	"testing"
-
-	"github.com/armadakv/objfs"
 )
 
 func TestReadFile(t *testing.T) {
@@ -50,7 +48,7 @@ func TestSub(t *testing.T) {
 	upload(t, root, "tenants/acme/b.txt", "B")
 	upload(t, root, "tenants/other/c.txt", "C")
 
-	sub, err := objfs.Sub(root, "tenants/acme")
+	sub, err := Sub(root, "tenants/acme")
 	if err != nil {
 		t.Fatalf("Sub: %v", err)
 	}
@@ -63,7 +61,7 @@ func TestSub(t *testing.T) {
 
 	// List is scoped and stripped.
 	var names []string
-	if err := sub.List(ctx, "", func(a objfs.Attributes) error {
+	if err := sub.List(ctx, "", func(a Attributes) error {
 		names = append(names, a.Name)
 		return nil
 	}); err != nil {
@@ -72,6 +70,16 @@ func TestSub(t *testing.T) {
 	slices.Sort(names)
 	if want := []string{"a.txt", "b.txt"}; !slices.Equal(names, want) {
 		t.Errorf("sub.List = %v, want %v", names, want)
+	}
+
+	// Iterate is scoped and stripped.
+	names = nil
+	for a := range sub.Iterate(ctx, "") {
+		names = append(names, a.Name)
+	}
+	slices.Sort(names)
+	if want := []string{"a.txt", "b.txt"}; !slices.Equal(names, want) {
+		t.Errorf("sub.Iterate = %v, want %v", names, want)
 	}
 
 	// Upload through the sub lands at the prefixed location in the parent.
@@ -83,7 +91,7 @@ func TestSub(t *testing.T) {
 	}
 
 	// Nested Sub flattens.
-	nested, err := objfs.Sub(sub, "deep")
+	nested, err := Sub(sub, "deep")
 	if err != nil {
 		t.Fatalf("nested Sub: %v", err)
 	}
@@ -135,7 +143,7 @@ func TestReadDir(t *testing.T) {
 			}
 			// Generic prefix-synthesis path (the implementation cloud backends
 			// share via objfs.ReadDir) must agree.
-			gen, err := objfs.ReadDir(context.Background(), b, tt.dir)
+			gen, err := ReadDir(context.Background(), b, tt.dir)
 			if err != nil {
 				t.Fatalf("objfs.ReadDir: %v", err)
 			}
@@ -177,7 +185,7 @@ func TestSubReadDir(t *testing.T) {
 	upload(t, root, "tenants/acme/a.txt", "A")
 	upload(t, root, "tenants/acme/logs/1.txt", "1")
 
-	sub, err := objfs.Sub(root, "tenants/acme")
+	sub, err := Sub(root, "tenants/acme")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -199,7 +207,7 @@ func TestRandomAccessFileSeek(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	f := objfs.NewRandomAccessFile(b, at)
+	f := NewRandomAccessFile(b, at)
 	defer f.Close()
 	seeker := f.(io.Seeker)
 
@@ -227,7 +235,7 @@ func TestRandomAccessFileReadAt(t *testing.T) {
 	upload(t, b, "data", "0123456789")
 	at, _ := b.Stat(ctx, "data")
 
-	ra := objfs.NewRandomAccessFile(b, at).(io.ReaderAt)
+	ra := NewRandomAccessFile(b, at).(io.ReaderAt)
 
 	p := make([]byte, 4)
 	n, err := ra.ReadAt(p, 2)
@@ -249,7 +257,7 @@ func TestRandomAccessFileConcurrentReadAt(t *testing.T) {
 	b := newLocal(t)
 	upload(t, b, "data", "0123456789")
 	at, _ := b.Stat(context.Background(), "data")
-	ra := objfs.NewRandomAccessFile(b, at).(io.ReaderAt)
+	ra := NewRandomAccessFile(b, at).(io.ReaderAt)
 
 	var wg sync.WaitGroup
 	for off := range int64(8) {
@@ -288,7 +296,7 @@ func TestRandomAccessFileZip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ra := objfs.NewRandomAccessFile(b, at).(io.ReaderAt)
+	ra := NewRandomAccessFile(b, at).(io.ReaderAt)
 
 	zr, err := zip.NewReader(ra, at.Size)
 	if err != nil {
