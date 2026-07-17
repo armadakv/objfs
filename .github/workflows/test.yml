@@ -28,7 +28,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - name: Install Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Test
@@ -44,7 +44,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - name: Install Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Integration Test
